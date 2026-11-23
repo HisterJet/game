@@ -37,7 +37,7 @@
   const grid = document.getElementById("grid");
 
   // Standaard: de map waar deze pagina staat. Lokaal (file://) -> placeholder.
-  const here = location.href.replace(/qr-generator\.html.*$/, "");
+  const here = location.origin + location.pathname.replace(/[^/]*$/, "");  // map van deze pagina, ook zonder ".html"
   baseInput.value = location.protocol.startsWith("http") ? here : "https://MIJN-GITHUB.github.io/hitster/";
 
   let songs = [];
