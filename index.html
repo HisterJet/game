@@ -16,25 +16,17 @@
     <p>Open de camera van je telefoon en scan de QR-code op de kaart.</p>
   </section>
 
-  <!-- Scherm 2: kaart gescand, wacht op draai -->
-  <section id="screen-turn" hidden>
+  <!-- Scherm 2: kaart gescand -->
+  <section id="screen-ready" hidden>
     <p class="big">Kaart gescand!</p>
-    <p>Draai je telefoon om het nummer te starten.</p>
-    <button id="btn-enable" hidden>Tik één keer om te starten</button>
-    <p id="turn-hint" class="hint" hidden></p>
-    <button id="btn-fallback" class="link" hidden>Werkt het draaien niet? Tik hier.</button>
+    <button id="btn-play">Speel af</button>
   </section>
 
-  <!-- Melding: autoplay geblokkeerd -->
-  <section id="screen-blocked" hidden>
-    <p class="big">Je browser blokkeert automatisch afspelen.</p>
-    <button id="btn-blocked">Tik om het nummer te starten</button>
-  </section>
-
-  <!-- Scherm 3/4: nummer speelt + antwoord -->
+  <!-- Scherm 3: nummer speelt, antwoord verborgen tot onthullen -->
   <section id="screen-play" hidden>
     <p class="big">🎵 Nu speelt:</p>
-    <dl>
+    <button id="btn-reveal">Onthul</button>
+    <dl id="answer" hidden>
       <dt>Artiest:</dt><dd id="info-artist"></dd>
       <dt>Titel:</dt><dd id="info-title"></dd>
       <dt>Jaar:</dt><dd id="info-year"></dd>
