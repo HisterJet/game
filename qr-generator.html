@@ -17,6 +17,7 @@
   .qr img, .qr canvas { max-width: 100%; height: auto; }
   .meta { font-size: .9rem; margin-bottom: 8px; }
   .id { color: #666; font-size: .8rem; }
+  .url { color: #666; font-size: .7rem; word-break: break-all; margin-bottom: 8px; }
   @media print { .bar, .card button { display: none; } .card { border-color: #ccc; } }
 </style>
 </head>
@@ -28,6 +29,7 @@
   <button id="regen">Maak QR-codes opnieuw</button>
   <button onclick="window.print()">Print alles</button>
 </div>
+<p id="warn" style="display:none;background:#fee2e2;color:#991b1b;padding:10px;border-radius:6px"></p>
 <div id="grid"></div>
 
 <script>
@@ -48,6 +50,11 @@
     grid.innerHTML = "";
     let base = baseInput.value.trim();
     if (!base.endsWith("/")) base += "/";
+    const warn = document.getElementById("warn");
+    if (/MIJN-GITHUB|localhost|127\.0\.0\.1|^file:|192\.168\./i.test(base) || !/^https:\/\//.test(base)) {
+      warn.style.display = "block";
+      warn.textContent = "Let op: deze basis-URL werkt niet op andere telefoons. Vul hierboven je echte GitHub Pages-adres in (https://JOUWNAAM.github.io/REPONAAM/) en klik op 'Maak QR-codes opnieuw'.";
+    } else warn.style.display = "none";
     songs.forEach(s => {
       const url = base + "?song=" + encodeURIComponent(s.id);
       const card = document.createElement("div");
@@ -56,11 +63,12 @@
       qr.className = "qr";
       card.appendChild(qr);
       card.insertAdjacentHTML("beforeend",
-        `<div class="meta"><strong></strong><br><span class="t"></span><br><span class="y"></span></div><div class="id"></div>`);
+        `<div class="meta"><strong></strong><br><span class="t"></span><br><span class="y"></span></div><div class="url"></div><div class="id"></div>`);
       card.querySelector("strong").textContent = s.artist;
       card.querySelector(".t").textContent = s.title;
       card.querySelector(".y").textContent = s.year;
       card.querySelector(".id").textContent = "#" + s.id;
+      card.querySelector(".url").textContent = url;
       const btn = document.createElement("button");
       btn.textContent = "Download QR";
       card.appendChild(btn);
