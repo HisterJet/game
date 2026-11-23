@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR-generator - Hitster Holland</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 20px; background: #fff; color: #111; }
+  h1 { font-size: 1.3rem; }
+  .bar { margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .bar input { flex: 1 1 360px; padding: 8px; font: inherit; }
+  button { font: inherit; padding: 8px 12px; cursor: pointer; }
+  #grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 16px; }
+  .card { border: 1px dashed #999; padding: 12px; text-align: center; break-inside: avoid; }
+  .qr { display: flex; justify-content: center; margin-bottom: 8px; }
+  .qr img, .qr canvas { max-width: 100%; height: auto; }
+  .meta { font-size: .9rem; margin-bottom: 8px; }
+  .id { color: #666; font-size: .8rem; }
+  @media print { .bar, .card button { display: none; } .card { border-color: #ccc; } }
+</style>
+</head>
+<body>
+<h1>Hitster Holland - QR-codes</h1>
+<div class="bar">
+  <label for="base">Basis-URL:</label>
+  <input id="base" type="text">
+  <button id="regen">Maak QR-codes opnieuw</button>
+  <button onclick="window.print()">Print alles</button>
+</div>
+<div id="grid"></div>
+
+<script>
+  const baseInput = document.getElementById("base");
+  const grid = document.getElementById("grid");
+
+  // Standaard: de map waar deze pagina staat. Lokaal (file://) -> placeholder.
+  const here = location.href.replace(/qr-generator\.html.*$/, "");
+  baseInput.value = location.protocol.startsWith("http") ? here : "https://MIJN-GITHUB.github.io/hitster/";
+
+  let songs = [];
+  fetch("songs.json", { cache: "no-store" }).then(r => r.json()).then(d => { songs = d; render(); })
+    .catch(() => { grid.textContent = "songs.json kon niet worden geladen. Open deze pagina via je website (of een lokale server), niet direct als bestand."; });
+
+  document.getElementById("regen").onclick = render;
+
+  function render() {
+    grid.innerHTML = "";
+    let base = baseInput.value.trim();
+    if (!base.endsWith("/")) base += "/";
+    songs.forEach(s => {
+      const url = base + "?song=" + encodeURIComponent(s.id);
+      const card = document.createElement("div");
+      card.className = "card";
+      const qr = document.createElement("div");
+      qr.className = "qr";
+      card.appendChild(qr);
+      card.insertAdjacentHTML("beforeend",
+        `<div class="meta"><strong></strong><br><span class="t"></span><br><span class="y"></span></div><div class="id"></div>`);
+      card.querySelector("strong").textContent = s.artist;
+      card.querySelector(".t").textContent = s.title;
+      card.querySelector(".y").textContent = s.year;
+      card.querySelector(".id").textContent = "#" + s.id;
+      const btn = document.createElement("button");
+      btn.textContent = "Download QR";
+      card.appendChild(btn);
+      grid.appendChild(card);
+
+      new QRCode(qr, { text: url, width: 512, height: 512, correctLevel: QRCode.CorrectLevel.M });
+
+      btn.onclick = () => {
+        const canvas = qr.querySelector("canvas");
+        // witte rand rond de QR voor betrouwbaar scannen
+        const pad = 40, out = document.createElement("canvas");
+        out.width = out.height = canvas.width + pad * 2;
+        const ctx = out.getContext("2d");
+        ctx.fillStyle = "#fff"; ctx.fillRect(0, 0, out.width, out.height);
+        ctx.drawImage(canvas, pad, pad);
+        const a = document.createElement("a");
+        a.href = out.toDataURL("image/png");
+        a.download = "hitster-" + s.id + ".png";
+        a.click();
+      };
+    });
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hitster Holland</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<main>
+  <h1>Hitster Holland</h1>
+
+  <!-- Scherm 1: geen kaart -->
+  <section id="screen-scan">
+    <p class="big">Scan een kaartje</p>
+    <p>Open de camera van je telefoon en scan de QR-code op de kaart.</p>
+  </section>
+
+  <!-- Scherm 2: kaart gescand, wacht op draai -->
+  <section id="screen-turn" hidden>
+    <p class="big">Kaart gescand!</p>
+    <p>Draai je telefoon om het nummer te starten.</p>
+    <button id="btn-enable" hidden>Tik één keer om te starten</button>
+    <p id="turn-hint" class="hint" hidden></p>
+    <button id="btn-fallback" class="link" hidden>Werkt het draaien niet? Tik hier.</button>
+  </section>
+
+  <!-- Melding: autoplay geblokkeerd -->
+  <section id="screen-blocked" hidden>
+    <p class="big">Je browser blokkeert automatisch afspelen.</p>
+    <button id="btn-blocked">Tik om het nummer te starten</button>
+  </section>
+
+  <!-- Scherm 3/4: nummer speelt + antwoord -->
+  <section id="screen-play" hidden>
+    <p class="big">🎵 Nu speelt:</p>
+    <dl>
+      <dt>Artiest:</dt><dd id="info-artist"></dd>
+      <dt>Titel:</dt><dd id="info-title"></dd>
+      <dt>Jaar:</dt><dd id="info-year"></dd>
+    </dl>
+    <div class="controls">
+      <button id="btn-pause">Pauze</button>
+      <label>Volume
+        <input id="volume" type="range" min="0" max="1" step="0.05" value="1">
+      </label>
+      <button id="btn-next">Volgende kaart</button>
+    </div>
+  </section>
+
+  <p id="error" class="error" hidden></p>
+</main>
+<audio id="audio" preload="auto" playsinline></audio>
+<script src="script.js"></script>
+</body>
+</html>
