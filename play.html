@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Afspelen - Hitster Holland</title>
+<link rel="stylesheet" href="style.css">
+<style>
+  ul { list-style: none; padding: 0; margin: 20px 0 0; }
+  li { display: flex; align-items: center; gap: 12px; padding: 10px 0; border-bottom: 1px solid #fed7aa; }
+  li .nr { color: #78716c; width: 3ch; }
+  li .txt { flex: 1; }
+  li .txt small { display: block; color: #78716c; }
+  li button { width: auto; margin: 0; padding: 8px 14px; }
+  #now { position: sticky; top: 0; background: #fff7ed; padding-bottom: 12px; border-bottom: 2px solid #ea580c; }
+  #now .controls { display: flex; gap: 12px; align-items: center; }
+  #now .controls button { width: auto; margin: 0; padding: 8px 14px; }
+  #now .controls input { flex: 1; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Hitster Holland - Afspelen</h1>
+  <p class="hint">Speel een nummer direct af, zonder QR-code of draaien. Handig om te testen.</p>
+
+  <div id="now" hidden>
+    <p class="big" id="now-title"></p>
+    <p id="now-sub"></p>
+    <div class="controls">
+      <button id="pp">Pauze</button>
+      <input id="vol" type="range" min="0" max="1" step="0.05" value="1" aria-label="Volume">
+    </div>
+  </div>
+
+  <ul id="list"></ul>
+  <p id="error" class="error" hidden></p>
+</main>
+<audio id="audio" preload="auto" playsinline></audio>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+  const audio = $("audio");
+  const CLIP_SECONDS = 30;
+  let clipStart = 0, clipDone = false, current = null;
+
+  fetch("songs.json", { cache: "no-store" }).then(r => r.json()).then(songs => {
+    songs.forEach(s => {
+      const li = document.createElement("li");
+      li.innerHTML = '<span class="nr"></span><span class="txt"><strong></strong><small></small></span>';
+      li.querySelector(".nr").textContent = s.id;
+      li.querySelector("strong").textContent = s.title;
+      li.querySelector("small").textContent = s.artist + " (" + s.year + ")";
+      const b = document.createElement("button");
+      b.textContent = "Speel";
+      b.onclick = () => play(s);
+      li.appendChild(b);
+      $("list").appendChild(li);
+    });
+  }).catch(() => {
+    $("error").textContent = "songs.json kon niet worden geladen.";
+    $("error").hidden = false;
+  });
+
+  function play(s) {
+    $("error").hidden = true;
+    current = s;
+    clipStart = Number(s.start) || 0;
+    clipDone = false;
+    audio.src = s.file;
+    if (clipStart > 0) {
+      audio.addEventListener("loadedmetadata", () => {
+        if (audio.duration > clipStart + 1) audio.currentTime = clipStart; else clipStart = 0;
+      }, { once: true });
+    }
+    audio.volume = Number($("vol").value);
+    $("now-title").textContent = "🎵 " + s.title;
+    $("now-sub").textContent = s.artist + " - " + s.year;
+    $("now").hidden = false;
+    $("pp").textContent = "Pauze";
+    audio.play().catch(() => {
+      $("error").textContent = "Het MP3-bestand kon niet worden afgespeeld: controleer of " + s.file + " bestaat.";
+      $("error").hidden = false;
+    });
+  }
+
+  audio.addEventListener("timeupdate", () => {
+    if (!current || clipDone) return;
+    if (audio.currentTime >= clipStart + CLIP_SECONDS) { audio.pause(); clipDone = true; $("pp").textContent = "Opnieuw"; }
+  });
+  audio.addEventListener("ended", () => { clipDone = true; $("pp").textContent = "Opnieuw"; });
+  audio.addEventListener("error", () => {
+    if (!current) return;
+    $("error").textContent = "Bestand niet gevonden: " + current.file;
+    $("error").hidden = false;
+  });
+
+  $("pp").onclick = () => {
+    if (clipDone) { clipDone = false; audio.currentTime = clipStart; audio.play(); $("pp").textContent = "Pauze"; }
+    else if (audio.paused) { audio.play(); $("pp").textContent = "Pauze"; }
+    else { audio.pause(); $("pp").textContent = "Play"; }
+  };
+  $("vol").oninput = (e) => { audio.volume = Number(e.target.value); };
+</script>
+</body>
+</html>
