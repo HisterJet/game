@@ -10,6 +10,22 @@
   let listening = false;    // sensoren actief
   let baseline = null;
   let fallbackTimer = null;
+  const CLIP_SECONDS = 30;  // lengte van het fragment
+  let clipStart = 0;        // startpunt in seconden (optioneel per nummer)
+  let clipDone = false;
+
+  function loadSong() {
+    clipStart = Number(song.start) || 0;
+    clipDone = false;
+    audio.src = song.file;
+    if (clipStart > 0) {
+      audio.addEventListener("loadedmetadata", () => {
+        // Als het nummer korter is dan het startpunt: gewoon van het begin
+        if (audio.duration > clipStart + 1) audio.currentTime = clipStart;
+        else clipStart = 0;
+      }, { once: true });
+    }
+  }
 
   function show(name) {
     screens.forEach((s) => ($("screen-" + s).hidden = s !== name));
@@ -131,7 +147,7 @@
     if (started || !song) return;
     started = true;
     stopListening();
-    audio.src = song.file;
+    loadSong();
     audio.volume = Number($("volume").value);
     const p = audio.play();
     if (p && p.catch) {
@@ -156,15 +172,34 @@
     if (audio.src.startsWith("data:") || !song) return;
     showError("Het MP3-bestand kon niet worden geladen.");
   });
-  audio.addEventListener("ended", () => { $("btn-pause").textContent = "Opnieuw afspelen"; });
+  // Stop na 30 seconden (korter nummer: stopt vanzelf aan het einde)
+  audio.addEventListener("timeupdate", () => {
+    if (!song || clipDone || audio.src.startsWith("data:")) return;
+    if (audio.currentTime >= clipStart + CLIP_SECONDS) {
+      audio.pause();
+      clipDone = true;
+      $("btn-pause").textContent = "Opnieuw afspelen";
+    }
+  });
+  audio.addEventListener("ended", () => {
+    clipDone = true;
+    $("btn-pause").textContent = "Opnieuw afspelen";
+  });
 
   $("btn-blocked").onclick = () => {
     started = true;
-    audio.src = song.file;
+    loadSong();
     audio.play().catch(() => showError("Afspelen is niet gelukt. Controleer of je telefoon niet op stil staat."));
   };
 
   $("btn-pause").onclick = () => {
+    if (clipDone) {
+      clipDone = false;
+      audio.currentTime = clipStart;
+      audio.play();
+      $("btn-pause").textContent = "Pauze";
+      return;
+    }
     if (audio.paused) { audio.play(); $("btn-pause").textContent = "Pauze"; }
     else { audio.pause(); $("btn-pause").textContent = "Play"; }
   };
