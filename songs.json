@@ -1,5 +1,5 @@
 [
-  { "id": "001", "artist": "André Hazes", "title": "Bloed, Zweet En Tranen", "year": 2002, "file": "music/001.mp3" },
+  { "id": "001", "artist": "Harry Bannink", "title": "Klokhuis Intro", "year": 2011, "file": "music/001.mp3" },
   { "id": "002", "artist": "Artiest 2", "title": "Titel 2", "year": 1990, "file": "music/002.mp3" },
   { "id": "003", "artist": "Artiest 3", "title": "Titel 3", "year": 1985, "file": "music/003.mp3" }
 ]
